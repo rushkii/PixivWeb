@@ -1,10 +1,10 @@
 from PixivWeb import Client
-import asyncio
+import asyncio, time
 
 pixiv = Client()
 
 async def main():
-    art = await pixiv.get_artworks(98541854)
-    print(art)
+    art = await pixiv.get_artworks(94267660)
+    print(await art.download())
 
 asyncio.get_event_loop().run_until_complete(main())

@@ -3,7 +3,8 @@ from PixivWeb import types
 import PixivWeb
 
 from datetime import datetime
-from typing import List
+from typing import List, Union
+import aiofiles, os, asyncio
 
 __all__ = ['Artworks']
 
@@ -29,7 +30,7 @@ class Artworks(types.Object, Scaffold):
         id: int = None,
         title: str = None,
         caption: str = None,
-        images: List["Images"] = None,
+        images: "Images" = None,
         likes_count: int = None,
         bookmarks_count: int = None,
         views_count: int = None,
@@ -81,3 +82,40 @@ class Artworks(types.Object, Scaffold):
             )
             kwargs['images'] = images
         return Artworks(client, **kwargs)
+
+    async def download(self, path: str = None) -> Union[str, List[str]]:
+        if not path and self._client.download_dir:
+            if not os.path.exists(self._client.download_dir):
+                os.mkdir(self._client.download_dir)
+            path = self._client.download_dir
+        
+        elif path and not self._client.download_dir:
+            path = path
+        
+        elif not path and not self._client.download_dir:
+            if not os.path.exists("downloads"):
+                os.mkdir("downloads")
+            path = "downloads"
+        
+        paths = []
+        imbytes = []
+        
+        async def _handle_dl(img):
+            return await self._client._download_request(img)
+
+        for img in self.images.originals:
+            imbytes.append(asyncio.ensure_future(_handle_dl(img)))
+
+        imbytes = await asyncio.gather(*imbytes)
+        
+        async def _handle_save(i):
+            async with aiofiles.open(f"{path}/{self.id}_{i}.jpg", 'wb') as f:
+                await f.write(imbytes[i])
+            return f"{path}/{self.id}_{i}.jpg"
+
+        for i in range(len(imbytes)):
+            paths.append(asyncio.ensure_future(_handle_save(i)))
+        
+        paths = await asyncio.gather(*paths)
+        
+        return paths

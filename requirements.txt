@@ -1,3 +1,4 @@
 aiohttp
 dateparser
 bs4
+aiofiles

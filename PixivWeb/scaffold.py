@@ -11,3 +11,6 @@ class Scaffold:
 
     async def _ajax_request(self, url: str, **kwargs) -> dict:
         raise NotImplementedError()
+
+    async def _download_request(self, url: str, **kwargs) -> dict:
+        raise NotImplementedError()

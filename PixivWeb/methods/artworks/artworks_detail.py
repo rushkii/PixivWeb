@@ -69,7 +69,7 @@ class GetArtworks(Scaffold):
                 name=user['name'],
                 is_premium=user['premium'],
                 profile_url=f"{self._PIXIV_USER_URL}/{user['userId']}",
-                background_image=user['background']['url'],
+                background_image=user['background']['url'] if user.get("background") else None,
                 profile_image=user['imageBig'],
                 artworks=artworks,
             ),
